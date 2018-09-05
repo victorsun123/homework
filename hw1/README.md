@@ -36,7 +36,7 @@ To run behavior cloning policy:
 python behavior_cloning.py [EXPERT_DATA_FILE] [ENV_NAME] --num_rollouts [NUM_ROLLOUTS] --num_epochs [NUM_EPOCHS]
 
 To run dagger policy
-python behavior_cloning.py [EXPERT_DATA_FILE] [ENV_NAME] --dagger_iterations 5 --num_rollouts [NUM_ROLLOUTS] --num_epochs [NUM_EPOCHS]
+python behavior_cloning.py [EXPERT_POLICY_FILE] [EXPERT_DATA_FILE] [ENV_NAME] --dagger_iterations [DAGGER_ITERATIONS] --num_rollouts [NUM_ROLLOUTS] --num_epochs [NUM_EPOCHS]
 
 To plot results:
 python plot_data.py

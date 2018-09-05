@@ -1,13 +1,13 @@
-#!/usr/bin/env python
+# #!/usr/bin/env python
 
-"""
-Code to load an expert policy and generate roll-out data for behavioral cloning.
-Example usage:
-    python run_expert.py experts/Humanoid-v1.pkl Humanoid-v1 --render \
-            --num_rollouts 20
+# """
+# Code to load an expert policy and generate roll-out data for behavioral cloning.
+# Example usage:
+#     python run_expert.py experts/Humanoid-v1.pkl Humanoid-v1 --render \
+#             --num_rollouts 20
 
-Author of this script and included expert policies: Jonathan Ho (hoj@openai.com)
-"""
+# Author of this script and included expert policies: Jonathan Ho (hoj@openai.com)
+# """
 
 import os
 import pickle
@@ -17,15 +17,20 @@ import tf_util
 import gym
 import load_policy
 
+
+
+
 def main():
     import argparse
     parser = argparse.ArgumentParser()
     parser.add_argument('expert_policy_file', type=str)
     parser.add_argument('envname', type=str)
     parser.add_argument('--render', action='store_true')
+    parser.add_argument('--save', action='store_true')
     parser.add_argument("--max_timesteps", type=int)
     parser.add_argument('--num_rollouts', type=int, default=20,
                         help='Number of expert roll outs')
+    parser.add_argument('--log_dir', type=str)
     args = parser.parse_args()
 
     print('loading and building expert policy')
@@ -69,8 +74,12 @@ def main():
         expert_data = {'observations': np.array(observations),
                        'actions': np.array(actions)}
 
-        with open(os.path.join('expert_data', args.envname + '.pkl'), 'wb') as f:
-            pickle.dump(expert_data, f, pickle.HIGHEST_PROTOCOL)
+        if args.save:
+            with open(os.path.join('expert_data', args.envname + '_' + str(args.num_rollouts) + '.pkl'), 'wb') as f:
+                pickle.dump(expert_data, f, pickle.HIGHEST_PROTOCOL)
 
 if __name__ == '__main__':
     main()
+
+
+   

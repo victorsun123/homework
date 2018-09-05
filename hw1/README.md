@@ -25,3 +25,22 @@ In `experts/`, the provided expert policies are:
 * Walker2d-v2.pkl
 
 The name of the pickle file corresponds to the name of the gym environment.
+
+INSTRUCTIONS:
+
+To run expert policy and generate observation data:
+python run_expert.py [EXPERT_POLICY_FILE] [ENV_NAME] --save --num_rollouts [NUM_ROLLOUTS]
+Will save expert observation data to expert_data/{ENV_NAME}_{NUM_ROLLOUTS}.pkl
+
+To run behavior cloning policy:
+python behavior_cloning.py [EXPERT_DATA_FILE] [ENV_NAME] --num_rollouts [NUM_ROLLOUTS] --num_epochs [NUM_EPOCHS]
+
+To run dagger policy
+python behavior_cloning.py [EXPERT_DATA_FILE] [ENV_NAME] --dagger_iterations 5 --num_rollouts [NUM_ROLLOUTS] --num_epochs [NUM_EPOCHS]
+
+Run script.sh to reproduce results in report.
+
+To plot results:
+python plot_data.py
+
+

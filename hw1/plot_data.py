@@ -12,7 +12,6 @@ plt.xlabel('DAgger Iteration')
 plt.ylabel('Mean Reward')
 plt.title('Humanoid Reward using DAgger')
 plt.legend()
-plt.show()
 plt.savefig('dagger.png')
 
 
@@ -26,6 +25,5 @@ plt.xlabel('Rollouts used for Training')
 plt.ylabel('Mean Reward')
 plt.title("Humanoid Reward vs Number of Training Demonstrations")
 plt.legend()
-plt.show()
 plt.savefig('cloning.png')
 

@@ -1,26 +1,31 @@
-mean return 499.61792668122735
-std of return 178.5966153051961
+import matplotlib.pyplot as plt 
 
-mean return 1013.1680437912595
-std of return 422.01651599230104
-
-mean return 1814.9924302865566
-std of return 944.5671166139321
-
-mean return 7031.43369866172
-std of return 2750.6850605592836
-
-mean return 7660.726712440865
-std of return 2819.3942790306382
-
-mean return 9123.674837419478
-std of return 2730.6173039501464
-
-mean return 9667.562579243591
-std of return 1660.8745281977947
-
-mean return 10327.108715803277
-std of return 59.24022310706717
-
+iteration = [1,2,3,4,5,6,7,8]
 dagger_reward_mean= [499.61,1013.17,1814.99,7031.43,7660.73,9123.67,9667.56,10327.11]
 dagger_reward_sd = [178.60,422,944.57,2750.69,2819.39,2730.62,1660.87,59.24]
+
+plt.plot(iteration,dagger_reward_mean, label ='DAgger')
+plt.axhline(y=10395.79, color='k', label='Expert Policy')
+plt.axhline(y=8301.86, color='g', label='Behaviorial Cloning')
+plt.errorbar(iteration, dagger_reward_mean, yerr=dagger_reward_sd , fmt='o', color ='r')
+plt.xlabel('DAgger Iteration')
+plt.ylabel('Mean Reward')
+plt.title('Humanoid Reward using DAgger')
+plt.legend()
+plt.show()
+plt.savefig('dagger.png')
+
+
+num_rollouts = [10,25,50,75,100]
+cloning_mean = [539.01, 732.54, 2415.42, 1348.24, 7088]
+cloning_sd = [125.35,276.81,2415.43,659.09,3382.36]
+
+plt.plot(num_rollouts,cloning_mean)
+plt.errorbar(num_rollouts,cloning_mean, yerr=cloning_sd , fmt='o', color ='r')
+plt.xlabel('Rollouts used for Training')
+plt.ylabel('Mean Reward')
+plt.title("Humanoid Reward vs Number of Training Demonstrations")
+plt.legend()
+plt.show()
+plt.savefig('cloning.png')
+

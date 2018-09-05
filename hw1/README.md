@@ -38,9 +38,11 @@ python behavior_cloning.py [EXPERT_DATA_FILE] [ENV_NAME] --num_rollouts [NUM_ROL
 To run dagger policy
 python behavior_cloning.py [EXPERT_DATA_FILE] [ENV_NAME] --dagger_iterations 5 --num_rollouts [NUM_ROLLOUTS] --num_epochs [NUM_EPOCHS]
 
-Run script.sh to reproduce results in report.
-
 To plot results:
 python plot_data.py
+
+Run script.sh to reproduce results in report.
+
+
 
 

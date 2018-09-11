@@ -13,6 +13,8 @@ plt.ylabel('Mean Reward')
 plt.title('Humanoid Reward using DAgger')
 plt.legend()
 plt.savefig('dagger.png')
+plt.figure()
+
 
 
 num_rollouts = [10,25,50,75,100]

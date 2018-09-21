@@ -16,7 +16,8 @@ The only file that you need to look at is `train_pg_f18.py`, which you will impl
 See the [HW2 PDF](http://rail.eecs.berkeley.edu/deeprlcourse/static/homeworks/hw2.pdf) for further instructions.
 
 
-To reproduce CartPole Experiments Run:
+
+**To reproduce CartPole Experiments Run:**
 
 `python train_pg_f18.py CartPole-v0 -n 100 -b 1000 -e 3 -dna --exp_name sb_no_rtg_dna`
 
@@ -34,11 +35,11 @@ To reproduce InvertedPendulum Experiments Run:
 
 `python train_pg_f18.py InvertedPendulum-v2 -ep 1000 --discount 0.9 -n 100 -e 3 -l 2 -s 64 -b 20 -lr .02 -rtg --exp_name hc_b20_r.02`
 
-To reproduce LunarLander Experiments Run:
+**To reproduce LunarLander Experiments Run:**
 
 `python train_pg_f18.py LunarLanderContinuous-v2 -ep 1000 --discount 0.99 -n 100 -e 3 -l 2 -s 64 -b 40000 -lr 0.005 -rtg --nn_baseline --exp_name ll_b40000_r0.005`
 
-To reproduce HalfCheetah Experiments Run:
+**To reproduce HalfCheetah Experiments Run:**
 
 `python train_pg_f18.py HalfCheetah-v2 -ep 150 --discount 0.9 -n 100 -e 3 -l 2 -s 32 -b 50000 -lr .02 -rtg --nn_baseline --exp_name hc_b50000_r.02`
 

@@ -122,6 +122,7 @@ class LunarLander(gym.Env):
 
     continuous = False
 
+
     def __init__(self):
         self._seed()
         self.viewer = None
@@ -141,6 +142,12 @@ class LunarLander(gym.Env):
         self.curr_step = None
 
         self._reset()
+
+    def reset(self):
+         return self._reset()
+
+    def step(self, *args, **kwargs):
+        return self._step(*args, **kwargs)
 
     def _seed(self, seed=None):
         self.np_random, seed = seeding.np_random(seed)

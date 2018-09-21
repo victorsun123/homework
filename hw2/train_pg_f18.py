@@ -187,7 +187,7 @@ class Agent(object):
             # YOUR_CODE_HERE
             # print('actor dim', self.ac_dim)
             # print(sy_mean.shape)
-            sy_sampled_ac = sy_mean + sy_logstd * tf.random_normal(shape = tf.shape(sy_mean))
+            sy_sampled_ac = tf.squeeze(sy_mean) + tf.exp(sy_logstd) * tf.random_normal(shape=[self.ac_dim])
             # print(sy_sampled_ac.shape)
            # print('continuous shape', sy_sampled_ac.shape)
         return sy_sampled_ac
@@ -227,7 +227,7 @@ class Agent(object):
         else:
             sy_mean, sy_logstd = policy_parameters
             # YOUR_CODE_HERE
-            multivariate = tfp.distributions.MultivariateNormalDiag(sy_mean, sy_logstd)
+            multivariate = tfp.distributions.MultivariateNormalDiag(sy_mean, tf.exp(sy_logstd))
             sy_logprob_n = multivariate.log_prob(sy_ac_na)
         return sy_logprob_n
 
@@ -280,17 +280,16 @@ class Agent(object):
         # neural network baseline. These will be used to fit the neural network baseline. 
         #========================================================================================#
         if self.nn_baseline:
-            raise NotImplementedError
             self.baseline_prediction = tf.squeeze(build_mlp(
                                     self.sy_ob_no, 
                                     1, 
                                     "nn_baseline",
                                     n_layers=self.n_layers,
                                     size=self.size))
-            # YOUR_CODE_HERE
-            self.sy_target_n = None
-            baseline_loss = None
-            self.baseline_update_op = tf.train.AdamOptimizer(self.learning_rate).minimize(baseline_loss)
+
+            self.sy_target_n = tf.placeholder(shape = [None], name = "target",dtype = tf.float32)
+            self.baseline_loss = tf.losses.mean_squared_error(self.baseline_prediction, self.sy_target_n)
+            self.baseline_update_op = tf.train.AdamOptimizer(self.learning_rate).minimize(self.baseline_loss)
 
     def sample_trajectories(self, itr, env):
         # Collect paths until we have enough timesteps
@@ -318,7 +317,7 @@ class Agent(object):
             #                           ----------PROBLEM 3----------
             #====================================================================================#
             ac = self.sess.run(self.sy_sampled_ac, feed_dict={self.sy_ob_no: [ob]})
-            if not self.discrete:
+            if not self.discrete and self.ac_dim == 1:
                 ac = ac[0]
             acs.append(ac)
             ob, rew, done, _ = env.step(ac)
@@ -446,11 +445,11 @@ class Agent(object):
             # at each timestep for each trajectory, and save the result in a variable 'b_n'
             # like 'ob_no', 'ac_na', and 'q_n'.
             #
-            # Hint #bl1: rescale the output from the nn_baseline to match the statistics
+            # Hint #bl1: rescale the outputx from the nn_baseline to match the statistics
             # (mean and std) of the current batch of Q-values. (Goes with Hint
             # #bl2 in Agent.update_parameters.
-            raise NotImplementedError
-            b_n = None # YOUR CODE HERE
+            b_n = self.sess.run(self.baseline_prediction,feed_dict={self.sy_ob_no: ob_no})
+            b_n = np.mean(q_n) + np.std(q_n) * (b_n- np.mean(b_n)/ np.std(b_n))
             adv_n = q_n - b_n
         else:
             adv_n = q_n.copy()
@@ -489,7 +488,8 @@ class Agent(object):
             # in policy gradient methods: normalize adv_n to have mean zero and std=1.
             mean = np.mean(adv_n)
             std = np.std(adv_n)
-            adv_n = (adv_n - mean)/std
+            stabilizer = 10**(-8)
+            adv_n = (adv_n - mean)/(std+stabilizer)
         return q_n, adv_n
 
     def update_parameters(self, ob_no, ac_na, q_n, adv_n):
@@ -525,8 +525,10 @@ class Agent(object):
             # Agent.compute_advantage.)
 
             # YOUR_CODE_HERE
-            raise NotImplementedError
-            target_n = None 
+            q_mean = np.mean(q_n) 
+            q_std = np.std(q_n)
+            target_n = (q_n - q_mean)/(q_std + 10**-8)
+            _, loss = self.sess.run([self.baseline_update_op, self.baseline_loss] ,feed_dict={self.sy_ob_no: ob_no,self.sy_target_n: target_n}) 
 
         #====================================================================================#
         #                           ----------PROBLEM 3----------
@@ -541,7 +543,7 @@ class Agent(object):
 
         # YOUR_CODE_HERE
         if not self.discrete:
-            ac_na = np.reshape(ac_na, (ac_na.shape[0],1))
+            ac_na = np.reshape(ac_na, (ac_na.shape[0],-1))
         _, loss_val = self.sess.run([self.update_op,self.loss], feed_dict={self.sy_ob_no: ob_no, self.sy_ac_na: ac_na, self.sy_adv_n: adv_n })
         print("Current loss is %4f" % loss_val)
 

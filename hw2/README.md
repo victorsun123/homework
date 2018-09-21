@@ -31,7 +31,7 @@ See the [HW2 PDF](http://rail.eecs.berkeley.edu/deeprlcourse/static/homeworks/hw
 
 `python train_pg_f18.py CartPole-v0 -n 100 -b 5000 -e 3 -rtg --exp_name lb_rtg_na`
 
-To reproduce InvertedPendulum Experiments Run:
+**To reproduce InvertedPendulum Experiments Run:**
 
 `python train_pg_f18.py InvertedPendulum-v2 -ep 1000 --discount 0.9 -n 100 -e 3 -l 2 -s 64 -b 20 -lr .02 -rtg --exp_name hc_b20_r.02`
 

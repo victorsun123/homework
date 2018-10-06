@@ -159,16 +159,48 @@ class QLearner(object):
     ######
 
     # YOUR CODE HERE
-    self.q_t = q_func(obs_t_float, self.num_actions, scope="q_func", reuse=tf.AUTO_REUSE)
+    self.q_t = q_func(obs_t_float, self.num_actions, scope="q_func", reuse=False)
     q_func_vars = tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES, scope='q_func')
 
-    self.q_tp1 = q_func(obs_tp1_float, self.num_actions, scope="q_func", reuse=tf.AUTO_REUSE)
+    self.q_tp1 = q_func(obs_tp1_float, self.num_actions, scope="target_q_func", reuse=False)
     target_q_func_vars = tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES, scope='target_q_func')
 
     act_t_onehot = tf.one_hot(self.act_t_ph, self.num_actions)
-    q_act_t = tf.reduce_sum(act_t_onehot * self.q_t, axis=1)
-    y = self.rew_t_ph + gamma * tf.reduce_max(self.q_tp1)
-    self.total_error = huber_loss(tf.subtract(y,q_act_t))
+    self.q_act_t = tf.reduce_sum(act_t_onehot * self.q_t, axis=1)
+    
+    if double_q:
+      self.q_tp1_online = q_func(obs_tp1_float, self.num_actions, scope="q_func", reuse=True)
+      argmax = tf.argmax(self.q_tp1_online, 1)
+    else:
+      argmax = tf.argmax(self.q_tp1, 1)
+
+    act_tp1_onehot = tf.one_hot(argmax, self.num_actions)
+    self.q_tp1_best = tf.reduce_sum(self.q_tp1 * act_tp1_onehot, axis=1)
+    y = self.rew_t_ph + gamma * self.q_tp1_best
+    self.total_error = huber_loss(tf.subtract(y,self.q_act_t))
+
+
+
+        #     # compute estimate of best possible value starting from state at t + 1
+        # if config["double_q"]:
+        #     with tf.variable_scope(Q_SCOPE, reuse=True):
+        #         q_tp1_using_online_net, q_logits_tp1_using_online_net, \
+        #             q_dist_tp1_using_online_net = self._build_q_network(
+        #                 self.obs_tp1)
+        #     q_tp1_best_using_online_net = tf.argmax(q_tp1_using_online_net, 1)
+        #     q_tp1_best_one_hot_selection = tf.one_hot(
+        #         q_tp1_best_using_online_net, self.num_actions)
+        #     q_tp1_best = tf.reduce_sum(q_tp1 * q_tp1_best_one_hot_selection, 1)
+        #     q_dist_tp1_best = tf.reduce_sum(
+        #         q_dist_tp1 * tf.expand_dims(q_tp1_best_one_hot_selection, -1),
+        #         1)
+        # else:
+        #     q_tp1_best_one_hot_selection = tf.one_hot(
+        #         tf.argmax(q_tp1, 1), self.num_actions)
+        #     q_tp1_best = tf.reduce_sum(q_tp1 * q_tp1_best_one_hot_selection, 1)
+        #     q_dist_tp1_best = tf.reduce_sum(
+        #         q_dist_tp1 * tf.expand_dims(q_tp1_best_one_hot_selection, -1),
+        #         1)
 
     ######
 

@@ -179,29 +179,6 @@ class QLearner(object):
     y = self.rew_t_ph + gamma * self.q_tp1_best
     self.total_error = huber_loss(tf.subtract(y,self.q_act_t))
 
-
-
-        #     # compute estimate of best possible value starting from state at t + 1
-        # if config["double_q"]:
-        #     with tf.variable_scope(Q_SCOPE, reuse=True):
-        #         q_tp1_using_online_net, q_logits_tp1_using_online_net, \
-        #             q_dist_tp1_using_online_net = self._build_q_network(
-        #                 self.obs_tp1)
-        #     q_tp1_best_using_online_net = tf.argmax(q_tp1_using_online_net, 1)
-        #     q_tp1_best_one_hot_selection = tf.one_hot(
-        #         q_tp1_best_using_online_net, self.num_actions)
-        #     q_tp1_best = tf.reduce_sum(q_tp1 * q_tp1_best_one_hot_selection, 1)
-        #     q_dist_tp1_best = tf.reduce_sum(
-        #         q_dist_tp1 * tf.expand_dims(q_tp1_best_one_hot_selection, -1),
-        #         1)
-        # else:
-        #     q_tp1_best_one_hot_selection = tf.one_hot(
-        #         tf.argmax(q_tp1, 1), self.num_actions)
-        #     q_tp1_best = tf.reduce_sum(q_tp1 * q_tp1_best_one_hot_selection, 1)
-        #     q_dist_tp1_best = tf.reduce_sum(
-        #         q_dist_tp1 * tf.expand_dims(q_tp1_best_one_hot_selection, -1),
-        #         1)
-
     ######
 
     # construct optimization op (with gradient clipping)

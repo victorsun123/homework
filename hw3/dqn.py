@@ -311,8 +311,6 @@ class QLearner(object):
       error, _ = self.session.run([self.total_error, self.train_fn], feed_dict = \
         {self.obs_t_ph: obs_t_batch, self.act_t_ph: act_t_batch, self.rew_t_ph: rew, self.obs_tp1_ph: obs_tp1_batch,
          self.done_mask_ph: done, self.learning_rate: self.optimizer_spec.lr_schedule.value(self.t)}) 
-
-      print("Q Error: ", error)
       
       self.num_param_updates += 1
       if self.num_param_updates % self.target_update_freq == 0:

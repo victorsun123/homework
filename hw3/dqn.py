@@ -159,6 +159,16 @@ class QLearner(object):
     ######
 
     # YOUR CODE HERE
+    self.q_t = q_func(obs_t_float, self.num_actions, scope="q_func", reuse=tf.AUTO_REUSE)
+    q_func_vars = tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES, scope='q_func')
+
+    self.q_tp1 = q_func(obs_tp1_float, self.num_actions, scope="q_func", reuse=tf.AUTO_REUSE)
+    target_q_func_vars = tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES, scope='target_q_func')
+
+    act_t_onehot = tf.one_hot(self.act_t_ph, self.num_actions)
+    q_act_t = tf.reduce_sum(act_t_onehot * self.q_t, axis=1)
+    y = self.rew_t_ph + gamma * tf.reduce_max(self.q_tp1)
+    self.total_error = huber_loss(tf.subtract(y,q_act_t))
 
     ######
 
@@ -229,6 +239,21 @@ class QLearner(object):
     #####
 
     # YOUR CODE HERE
+    self.replay_buffer_idx = self.replay_buffer.store_frame(self.last_obs)
+    epsilon = self.exploration.value(self.t)
+    if random.random() < epsilon or not self.model_initialized:
+      action = self.env.action_space.sample()
+    else:
+      q = self.session.run(self.q_t, feed_dict={self.obs_t_ph: np.expand_dims(self.replay_buffer.encode_recent_observation(),axis=0)})
+      action = np.argmax(q)
+
+    obs, reward, done, info = self.env.step(action)
+    self.last_obs = obs
+    self.replay_buffer.store_effect(self.replay_buffer_idx,action,reward,done)
+
+    if done:
+      self.last_obs = self.env.reset()
+
 
   def update_model(self):
     ### 3. Perform experience replay and train the network.
@@ -273,9 +298,26 @@ class QLearner(object):
       # variable self.num_param_updates useful for this (it was initialized to 0)
       #####
 
-      # YOUR CODE HERE
+      # YOUR CODE HERE    
+      obs_t_batch, act_t_batch, rew, obs_tp1_batch, done = self.replay_buffer.sample(self.batch_size)
 
+      if not self.model_initialized:
+        initialize_interdependent_variables(self.session, tf.global_variables(), {
+          self.obs_t_ph: obs_t_batch,
+          self.obs_tp1_ph: obs_tp1_batch})
+        self.session.run(self.update_target_fn)
+        self.model_initialized = True
+
+      error, _ = self.session.run([self.total_error, self.train_fn], feed_dict = \
+        {self.obs_t_ph: obs_t_batch, self.act_t_ph: act_t_batch, self.rew_t_ph: rew, self.obs_tp1_ph: obs_tp1_batch,
+         self.done_mask_ph: done, self.learning_rate: self.optimizer_spec.lr_schedule.value(self.t)}) 
+
+      print("Q Error: ", error)
+      
       self.num_param_updates += 1
+      if self.num_param_updates % self.target_update_freq == 0:
+        self.session.run(self.update_target_fn)
+
 
     self.t += 1
 

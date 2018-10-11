@@ -6,7 +6,6 @@ import random
 import numpy as np
 import tensorflow as tf
 import tensorflow.contrib.layers as layers
-
 import dqn
 from dqn_utils import *
 from atari_wrappers import *
@@ -30,6 +29,8 @@ def atari_model(img_in, num_actions, scope, reuse=False):
 
 def atari_learn(env,
                 session,
+                schedule,
+                save_file,
                 num_timesteps):
     # This is just a rough estimate
     num_iterations = float(num_timesteps) / 4.0
@@ -52,13 +53,29 @@ def atari_learn(env,
         # which is different from the number of steps in the underlying env
         return get_wrapper_by_name(env, "Monitor").get_total_steps() >= num_timesteps
 
-    exploration_schedule = PiecewiseSchedule(
-        [
-            (0, 1.0),
-            (1e6, 0.1),
-            (num_iterations / 2, 0.01),
-        ], outside_value=0.01
-    )
+    if schedule ==  'Piecewise':
+        exploration_schedule = PiecewiseSchedule(
+            [
+                (0, 1.0),
+                (1e6, 0.1),
+                (2.5e6, 0.01),
+            ], outside_value=0.01
+        )
+    elif schedule == 'PiecewiseSharp':
+        exploration_schedule = PiecewiseSchedule(
+            [
+                (0, 1.0),
+                (5e5, 0.1),
+                (1e6, 0.02),
+                (2.5e6, 0.005),
+            ], outside_value=0
+        )
+    elif schedule == 'Linear':
+        exploration_schedule = LinearSchedule(num_timesteps,0,.1)
+    elif schedule == 'Constant':
+        exploration_schedule = ConstantSchedule(.05)
+    elif schedule == 'None':
+        exploration_schedule = ConstantSchedule(0)
 
     dqn.learn(
         env=env,
@@ -75,7 +92,8 @@ def atari_learn(env,
         frame_history_len=4,
         target_update_freq=10000,
         grad_norm_clipping=10,
-        double_q=True
+        rew_file=save_file,
+        double_q=False
     )
     env.close()
 
@@ -109,7 +127,7 @@ def get_env(task, seed):
     set_global_seeds(seed)
     env.seed(seed)
 
-    expt_dir = 'logs/hw3_vid_dir2/'
+    expt_dir = 'logs/hw3_vid_dir2_vanilla/'
     env = wrappers.Monitor(env, osp.join(expt_dir, "gym"), force=True)
     env = wrap_deepmind(env)
 
@@ -118,13 +136,21 @@ def get_env(task, seed):
 def main():
     # Get Atari games.
     task = gym.make('PongNoFrameskip-v4')
-
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--exploration_schedule', type=str, 
+        choices = ['Piecewise', 'PiecewiseSharp','Linear', 'Constant', 'None'], default='Piecewise')
+    parser.add_argument('--save_file', type=str, default=None)
+    args = parser.parse_args()
     # Run training
     seed = random.randint(0, 9999)
     print('random seed = %d' % seed)
     env = get_env(task, seed)
     session = get_session()
+<<<<<<< HEAD
     atari_learn(env, session, num_timesteps=2e6)
+=======
+    atari_learn(env, session, args.exploration_schedule, args.save_file, num_timesteps=5e6)
+>>>>>>> 2fe51155d38a861497b63263acc7136a4153d242
 
 if __name__ == "__main__":
     main()

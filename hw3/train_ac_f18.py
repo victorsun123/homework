@@ -284,7 +284,8 @@ class Agent(object):
                 time.sleep(0.1)
             obs.append(ob)
             ac = self.sess.run(self.sy_sampled_ac, feed_dict={self.sy_ob_no: [ob]})
-            ac = ac[0]
+            if not self.discrete and self.ac_dim == 1:
+                ac = ac[0]
             acs.append(ac)
             ob, rew, done, _ = env.step(ac)
             # add the observation after taking a step to next_obs
@@ -297,8 +298,10 @@ class Agent(object):
             # YOUR CODE HERE
             if done or steps > self.max_path_length:
                 terminals.append(1)
+                break
             else:
                 terminals.append(0)
+
         path = {"observation" : np.array(obs, dtype=np.float32), 
                 "reward" : np.array(rewards, dtype=np.float32), 
                 "action" : np.array(acs, dtype=np.float32),
@@ -334,6 +337,7 @@ class Agent(object):
         # YOUR CODE HERE
         v_s = self.sess.run(self.critic_prediction, feed_dict={self.sy_ob_no: ob_no})
         v_sp1 = self.sess.run(self.critic_prediction, feed_dict={self.sy_ob_no: next_ob_no})
+        v_sp1 = (1 - terminal_n) * v_sp1
         q_n = re_n + self.gamma * v_sp1
         adv_n = q_n - v_s
 
@@ -371,12 +375,13 @@ class Agent(object):
         # Note: don't forget to use terminal_n to cut off the V(s') term when computing the target
         # otherwise the values will grow without bound.
         # YOUR CODE HERE
-        for _ in range(num_target_updates):
+        for _ in range(self.num_target_updates):
             v_sp1 = self.sess.run(self.critic_prediction, feed_dict={self.sy_ob_no: next_ob_no})
+            v_sp1 = (1 - terminal_n) * v_sp1
             target = re_n + self.gamma* v_sp1
             for _ in range(self.num_grad_steps_per_target_update):
-                loss, _ = self.sess.run([self.critic_loss, self.critic_update_op], feed_dict={self.sy_ob_no: ob_no, self.sy_target_n = target})
-        
+                loss, _ = self.sess.run([self.critic_loss, self.critic_update_op], feed_dict={self.sy_ob_no: ob_no, self.sy_target_n: target})
+                
 
     def update_actor(self, ob_no, ac_na, adv_n):
         """ 
@@ -498,9 +503,9 @@ def train_AC(
         # (2) use the updated critic to compute the advantage by, calling agent.estimate_advantage
         # (3) use the estimated advantage values to update the actor, by calling agent.update_actor
         # YOUR CODE HERE
-        self.update_critic(ob_no, next_ob_no, re_n, terminal_n)
-        adv_n = self.estimate_advantage(ob_no, next_ob_no, re_n, terminal_n)
-        self.update_actor(ob_no, ac_na, adv_n)
+        agent.update_critic(ob_no, next_ob_no, re_n, terminal_n)
+        adv_n = agent.estimate_advantage(ob_no, next_ob_no, re_n, terminal_n)
+        agent.update_actor(ob_no, ac_na, adv_n)
 
         # Log diagnostics
         returns = [path["reward"].sum() for path in paths]

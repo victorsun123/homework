@@ -4,7 +4,7 @@ import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
-def plot(data, save_name):
+def plot(data, name, colors):
 	print(len(data))
 	mean = []
 	best = []
@@ -16,20 +16,21 @@ def plot(data, save_name):
 		else:
 			best.append(best[-1])
 
-	plt.plot(range(100, len(data)), mean, color = 'red', label = 'EpRewMean')
-	plt.plot(range(100, len(data)), best, color = 'blue', label = 'EpRewMeanBest')
-	plt.xlabel("Episode Number")
-	plt.ylabel("Episode Reward")
-	plt.legend()
-	plt.savefig(save_name)
-	plt.figure()
+	plt.plot(range(100, len(data)), mean, color = colors[0], label = 'EpRewMean_' + name)
+	plt.plot(range(100, len(data)), best, color = colors[1], label = 'EpRewMeanBest_' + name)
+
 
 
 with open("874e145c-f423-49f0-8baa-7d118d7bc2f5.pkl", 'rb') as f:
 	vanilla = pickle.load(f)
-plot(vanilla, "vanilla_DQN.png")
+plot(vanilla, "vanilla_DQN", ["red", "blue"])
 
 with open("932235fb-5da6-44f8-808b-9fe051bc0bf3.pkl", 'rb') as f:
 	double = pickle.load(f)
-plot(double, "double_DQN.png")
+plot(double, "double_DQN", ["magenta", "cyan"])
 
+plt.xlabel("Episode Number")
+plt.ylabel("Episode Reward")
+plt.legend()
+plt.savefig("vanilla_v_double.png")
+plt.figure()

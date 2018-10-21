@@ -85,6 +85,8 @@ class ModelBasedRL(object):
         losses = []
         ### PROBLEM 1
         ### YOUR CODE HERE
+        for i in range(self._training_epochs):
+            dataset.random_iterator()
         raise NotImplementedError
 
         logger.record_tabular('TrainingLossStart', losses[0])

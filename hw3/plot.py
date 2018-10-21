@@ -56,7 +56,7 @@ def plot_data(data, value="AverageReturn"):
     sns.set(style="darkgrid", font_scale=1.5)
     sns.tsplot(data=data, time="Iteration", value=value, unit="Unit", condition="Condition")
     plt.legend(loc='best').draggable()
-    plt.savefig("AC_CartPole")
+    plt.savefig("AC_HalfCheetah")
 
 
 def get_datasets(fpath, condition=None):

@@ -284,8 +284,8 @@ class Agent(object):
                 time.sleep(0.1)
             obs.append(ob)
             ac = self.sess.run(self.sy_sampled_ac, feed_dict={self.sy_ob_no: [ob]})
-            if not self.discrete and self.ac_dim == 1:
-                ac = ac[0]
+            #if not self.discrete and self.ac_dim == 1:
+            #ac = ac[0]
             acs.append(ac)
             ob, rew, done, _ = env.step(ac)
             # add the observation after taking a step to next_obs

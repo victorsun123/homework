@@ -41,8 +41,9 @@ class ModelBasedPolicy(object):
         """
         ### PROBLEM 1
         ### YOUR CODE HERE
-        raise NotImplementedError
-
+        state_ph = tf.placeholders(tf.float32, shape =(None, self._state_dim))
+        action_ph = tf.placeholders(tf.float32, shape =(None, self._action_dim))
+        next_state_ph = tf.placeholders(tf.float32, shape =(None, self._state_dim))
         return state_ph, action_ph, next_state_ph
 
     def _dynamics_func(self, state, action, reuse):
@@ -64,9 +65,13 @@ class ModelBasedPolicy(object):
 
         """
         ### PROBLEM 1
-        ### YOUR CODE HERE
-        raise NotImplementedError
 
+        state_norm = utils.normalize(state, self._init_dataset.state_mean, self._init_dataset.state_std)
+        action_norm = utils.normalize(action, self._init_dataset.action_mean, self._init_dataset.action_std)
+        state_action_pair = tf.concat([state_norm, action_norm], 0)
+        state_pred_norm = utils.build_mlp(state_action_pair,self._state_dim, "state_pred", \
+            n_layers = self._nn_layers, reuse=reuse):
+        next_state_pred = utils.unnormalize(state_pred_norm, self._init_dataset.state_mean, self._init_dataset.state_std)
         return next_state_pred
 
     def _setup_training(self, state_ph, next_state_ph, next_state_pred):
@@ -89,8 +94,12 @@ class ModelBasedPolicy(object):
         """
         ### PROBLEM 1
         ### YOUR CODE HERE
-        raise NotImplementedError
-
+        delta_state = next_state_ph - state_ph
+        delta_state_pred = next_state_pred - state_ph
+        delta_state_norm = utils.normalize(delta_state, self._init_dataset.delta_state_mean, self._init_dataset.delta_state_std)
+        delta_state_pred_norm = utils.normalize(delta_state_pred, self._init_dataset.delta_state_mean, self._init_dataset.delta_state_std)
+        loss = tf.losses.mean_squared_error(delta_state_norm, delta_state_pred_norm) 
+        optimizer = tf.train.AdamOptimizer(self._learning_rate).minimize(loss)
         return loss, optimizer
 
     def _setup_action_selection(self, state_ph):
@@ -133,10 +142,11 @@ class ModelBasedPolicy(object):
         The variables returned will be set as class attributes (see __init__)
         """
         sess = tf.Session()
-
         ### PROBLEM 1
         ### YOUR CODE HERE
-        raise NotImplementedError
+        state_ph, action_ph, next_state_ph = self._setup_placeholders()
+        next_state_pred = self._dynamics_func(state_ph, action_ph, reuse=tf.AUTO_REUSE)
+        loss, optimizer = self._setup_training(state_ph, next_state_ph, next_state_pred)
         ### PROBLEM 2
         ### YOUR CODE HERE
         best_action = None
@@ -155,8 +165,8 @@ class ModelBasedPolicy(object):
         """
         ### PROBLEM 1
         ### YOUR CODE HERE
-        raise NotImplementedError
-
+        loss, _ = self._sess.run([self._loss, self._optimizer], \
+            feed_dict={self._state_ph: states, self._action_ph: actions, self._next_state_ph: next_states})
         return loss
 
     def predict(self, state, action):
@@ -173,9 +183,10 @@ class ModelBasedPolicy(object):
         assert np.shape(action) == (self._action_dim,)
 
         ### PROBLEM 1
-        ### YOUR CODE HERE
-        raise NotImplementedError
-
+        state = np.expand_dims(state, axis=0)
+        action = np.expand_dims(action, axis=0)
+        next_state_pred = self._sess.run(self._next_state_pred, feed_dict={self._state_ph: state, self._action_ph: action})
+        next_state_pred = np.squeeze(next_state_pred)
         assert np.shape(next_state_pred) == (self._state_dim,)
         return next_state_pred
 

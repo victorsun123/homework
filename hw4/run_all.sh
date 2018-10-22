@@ -4,20 +4,20 @@
 ### Q1 ###
 ##########
 
-python main.py q1 --exp_name exp
+# python main.py q1 --exp_name exp
 
-##########
-### Q2 ###
-##########
+# ##########
+# ### Q2 ###
+# ##########
 
-python main.py q2 --exp_name exp
+# python main.py q2 --exp_name exp
 
-###########
-### Q3a ###
-###########
+# ###########
+# ### Q3a ###
+# ###########
 
-python main.py q3 --exp_name default
-python plot.py --exps HalfCheetah_q3_default --save HalfCheetah_q3_default
+# python main.py q3 --exp_name default
+# python plot.py --exps HalfCheetah_q3_default --save HalfCheetah_q3_default
 
 ###########
 ### Q3b ###

@@ -68,9 +68,10 @@ class ModelBasedPolicy(object):
         state_norm = utils.normalize(state, self._init_dataset.state_mean, self._init_dataset.state_std)
         action_norm = utils.normalize(action, self._init_dataset.action_mean, self._init_dataset.action_std)
         state_action_pair = tf.concat([state_norm, action_norm], 1)
-        state_pred_norm = utils.build_mlp(state_action_pair,self._state_dim, "state_pred", \
+        delta_state_pred = utils.build_mlp(state_action_pair,self._state_dim, "state_pred", \
             n_layers = self._nn_layers, reuse=reuse)
-        next_state_pred = utils.unnormalize(state_pred_norm, self._init_dataset.state_mean, self._init_dataset.state_std)
+        delta_state_pred = utils.unnormalize(delta_state_pred, self._init_dataset.delta_state_mean, self._init_dataset.delta_state_std)
+        next_state_pred = delta_state_pred + state
         return next_state_pred
 
     def _setup_training(self, state_ph, next_state_ph, next_state_pred):

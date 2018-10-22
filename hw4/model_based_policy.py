@@ -1,8 +1,7 @@
 import tensorflow as tf
 import numpy as np
-
+import sys
 import utils
-
 
 class ModelBasedPolicy(object):
 
@@ -41,9 +40,9 @@ class ModelBasedPolicy(object):
         """
         ### PROBLEM 1
         ### YOUR CODE HERE
-        state_ph = tf.placeholders(tf.float32, shape =(None, self._state_dim))
-        action_ph = tf.placeholders(tf.float32, shape =(None, self._action_dim))
-        next_state_ph = tf.placeholders(tf.float32, shape =(None, self._state_dim))
+        state_ph = tf.placeholder(tf.float32, shape =(None, self._state_dim))
+        action_ph = tf.placeholder(tf.float32, shape =(None, self._action_dim))
+        next_state_ph = tf.placeholder(tf.float32, shape =(None, self._state_dim))
         return state_ph, action_ph, next_state_ph
 
     def _dynamics_func(self, state, action, reuse):
@@ -68,9 +67,9 @@ class ModelBasedPolicy(object):
 
         state_norm = utils.normalize(state, self._init_dataset.state_mean, self._init_dataset.state_std)
         action_norm = utils.normalize(action, self._init_dataset.action_mean, self._init_dataset.action_std)
-        state_action_pair = tf.concat([state_norm, action_norm], 0)
+        state_action_pair = tf.concat([state_norm, action_norm], 1)
         state_pred_norm = utils.build_mlp(state_action_pair,self._state_dim, "state_pred", \
-            n_layers = self._nn_layers, reuse=reuse):
+            n_layers = self._nn_layers, reuse=reuse)
         next_state_pred = utils.unnormalize(state_pred_norm, self._init_dataset.state_mean, self._init_dataset.state_std)
         return next_state_pred
 
@@ -130,9 +129,18 @@ class ModelBasedPolicy(object):
 
         """
         ### PROBLEM 2
-        ### YOUR CODE HERE
-        raise NotImplementedError
-
+        costs = tf.zeros(self._num_random_action_selection)
+        first_actions = None
+        states = tf.ones([self._num_random_action_selection, 1]) *  state_ph
+        for j in range(self._horizon):
+            actions = tf.random_uniform([self._num_random_action_selection,self._action_dim],minval = self._action_space_low, maxval=self._action_space_high)
+            if j == 0:
+                first_actions=actions
+            next_states = self._dynamics_func(states, actions, reuse=True)
+            costs = tf.add(costs, self._cost_fn(states, actions, next_states))
+            states = next_states
+        index = tf.argmin(costs)
+        best_action = tf.gather(first_actions, index)
         return best_action
 
     def _setup_graph(self):
@@ -145,11 +153,10 @@ class ModelBasedPolicy(object):
         ### PROBLEM 1
         ### YOUR CODE HERE
         state_ph, action_ph, next_state_ph = self._setup_placeholders()
-        next_state_pred = self._dynamics_func(state_ph, action_ph, reuse=tf.AUTO_REUSE)
+        next_state_pred = self._dynamics_func(state_ph, action_ph, reuse=False)
         loss, optimizer = self._setup_training(state_ph, next_state_ph, next_state_pred)
         ### PROBLEM 2
-        ### YOUR CODE HERE
-        best_action = None
+        best_action = self._setup_action_selection(state_ph)
 
         sess.run(tf.global_variables_initializer())
 
@@ -200,8 +207,8 @@ class ModelBasedPolicy(object):
         assert np.shape(state) == (self._state_dim,)
 
         ### PROBLEM 2
-        ### YOUR CODE HERE
-        raise NotImplementedError
-
+        state = np.expand_dims(state, axis=0)
+        best_action = self._sess.run(self._best_action, feed_dict={self._state_ph: state})
+        best_action = np.squeeze(best_action)
         assert np.shape(best_action) == (self._action_dim,)
         return best_action

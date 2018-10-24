@@ -196,6 +196,6 @@ class ModelBasedRL(object):
             ### PROBLEM 3
             ### YOUR CODE HERE
             logger.info('Appending dataset...')
-            dataset.append(eval_dataset)
+            dataset.append(new_dataset)
 
             self._log(new_dataset)

@@ -535,19 +535,17 @@ def train_AC(
             # 1. Fit density model
             if dm == 'ex2':
                 ### PROBLEM 3
-                ### YOUR CODE HERE
-                raise NotImplementedError
+                ll, kl, elbo = exploration.fit_density_model(ob_no)
             elif dm == 'hist' or dm == 'rbf':
                 ### PROBLEM 1
-                ### YOUR CODE HERE
-                raise NotImplementedError
+                exploration.fit_density_model(ob_no)
             else:
                 assert False
 
             # 2. Modify the reward
             ### PROBLEM 1
             ### YOUR CODE HERE
-            raise NotImplementedError
+            re_n = exploration.modify_reward(re_n, ob_no)
 
             print('average state', np.mean(ob_no, axis=0))
             print('average action', np.mean(ac_na, axis=0))
@@ -625,7 +623,7 @@ def main():
 
     args = parser.parse_args()
 
-    data_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'data')
+    data_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'results')
 
     if not (os.path.exists(data_path)):
         os.makedirs(data_path)

@@ -74,6 +74,13 @@ def build_rnn(x, h, output_size, scope, n_layers, size, activation=tf.tanh, outp
     #                           ----------PROBLEM 2----------
     #====================================================================================#
     # YOUR CODE HERE
+    x = build_mlp(x,output_size,scope,n_layers,size)
+    gru = tf.nn.rnn_cell.GRUCell(output_size)
+    x,h = gru(x,h,scope)
+    return x,h
+
+
+
 
 def build_policy(x, h, output_size, scope, n_layers, size, gru_size, recurrent=True, activation=tf.tanh, output_activation=None):
     """
@@ -376,27 +383,30 @@ class Agent(object):
                 # first meta ob has only the observation
                 # set a, r, d to zero, construct first meta observation in meta_obs
                 # YOUR CODE HERE
-
+                meta_ob = np.concatenate((np.array(ob), np.zeros(self.meta_ob_dim - self.ob_dim)))
+                meta_obs[0] = np.expand_dims(meta_ob, axis=0)
                 steps += 1
 
             # index into the meta_obs array to get the window that ends with the current timestep
             # please name the windowed observation `in_` for compatibilty with the code that adds to the replay buffer (lines 418, 420)
             # YOUR CODE HERE
-
+            in_ = meta_obs[-1]
             hidden = np.zeros((1, self.gru_size), dtype=np.float32)
 
             # get action from the policy
             # YOUR CODE HERE
-
+            ac = self.sess.run(self.sy_sampled_ac, feed_dict={self.sy_ob_no: \
+                np.expand_dims(np.expand_dims(in_,axis=0),axis=0), self.sy_hidden: hidden})
+            ac = ac[0]
             # step the environment
-            # YOUR CODE HERE
+            ob, rew, done, _ = env.step(ac)
 
             ep_steps += 1
 
             done = bool(done) or ep_steps == self.max_path_length
             # construct the meta-observation and add it to meta_obs
             # YOUR CODE HERE
-
+            meta_obs[ep_steps]=  np.concatenate((ob,ac, [rew], [done]))
             rewards.append(rew)
             steps += 1
 
